@@ -70,7 +70,7 @@ def predict_patches(input, patch_shape, indices):
     # Basic framework for the prediction of the patches. Will need to be adjusted by the user in order to work properly
     predicted_patches = np.zeros_like(patch_shape)
     predicted_patches = np.expand_dims(predicted_patches, 0)
-    predicted_patches = np.repeat(predicted_patches, 0, len(indices))
+    predicted_patches = np.repeat(predicted_patches, len(indices), axis=0)
     for i in range(len(indices)):
         """" How you predict the patches depends on which framework you use, which dimensionality your data has etc.
          An example is provided below on how the prediction process can look like when using pytorch. """
@@ -101,7 +101,7 @@ def aggregate_patches(output_shape, indices, patches):
     """
     :param output_shape: The final shape that the output will have
     :param indices: The matrix of indices as returned by PatchCreator
-    :param patches: The list of patches as returned by predict_patches
+    :param patches: The list of patches as returned by predict_patches. Shape: (len(indices), patch_shape).
     :return: The predicted output matrix
     """
     dim_patches = len(indices[0])
