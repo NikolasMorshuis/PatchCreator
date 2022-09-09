@@ -13,7 +13,7 @@ with open('LICENSE') as f:
 
 setup(
     name='patchcreator',
-    version='0.0.1',
+    version='0.0.2',
     description='Package that helps to predict large files using patches',
     long_description=readme,
     author='Jan Nikolas Morshuis',

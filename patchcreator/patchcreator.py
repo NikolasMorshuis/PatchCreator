@@ -45,14 +45,15 @@ def index_creator(input, patch_shape, overlap=None):
     while dim_counter < dims:
         if patches_per_dimension[dim_counter] <= 1:
             indices_dim = np.array([0])
-            pass
         else:
             indices_dim = np.zeros((patches_per_dimension[dim_counter]))
-            for i in range(patches_per_dimension[dim_counter]):
-                indices_dim[i] = i * (patch_shape[dim_counter] - min_overlap[dim_counter])
-            # adjust the last patch if necessary:
-            if indices_dim[-1] + patch_shape[dim_counter] > shape[dim_counter]:
+            indices_dim[0] = 0
+            if len(indices_dim) > 1:
                 indices_dim[-1] = shape[dim_counter] - patch_shape[dim_counter]
+            if len(indices_dim) > 2:
+                new_dist = np.round((indices_dim[-1] - indices_dim[0]) / (len(indices_dim) - 1))
+                for i in range(len(indices_dim) - 2):
+                    indices_dim[i + 1] = (i + 1) * new_dist
         indices.append(indices_dim)
         dim_counter += 1
     for c, x in enumerate(product(*indices)):
@@ -97,11 +98,13 @@ def create_prob_matrix(shape_matrix, x, i):
     return(x)
 
 
-def aggregate_patches(output_shape, indices, patches):
+def aggregate_patches(output_shape, indices, patches, cov=0.01):
     """
     :param output_shape: The final shape that the output will have
     :param indices: The matrix of indices as returned by PatchCreator
     :param patches: The list of patches as returned by predict_patches. Shape: (len(indices), patch_shape).
+    :param cov: Define the sigma used. If you encounter artifacts at the patch-borders, you might want to reduce the
+                value
     :return: The predicted output matrix
     """
     dim_patches = len(indices[0])
@@ -120,7 +123,7 @@ def aggregate_patches(output_shape, indices, patches):
     for i in range(len(patch_shape)):
         if patch_shape[i] > 1:
             x = np.linspace(0, 1, patch_shape[i])
-            x = stats.multivariate_normal.pdf(x, mean=0.5, cov=0.1)
+            x = stats.multivariate_normal.pdf(x, mean=0.5, cov=cov)
             weight_1d = create_prob_matrix(np.shape(matrix), x, i)
             matrix *= weight_1d
     for i in range(len(indices)):
